@@ -1,0 +1,46 @@
+.companies-page {
+    padding: 2rem 0;
+    min-height: 80vh;
+}
+
+.companies-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.companies-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.companies-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.companies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.no-companies {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.no-companies h3 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.no-companies p {
+    color: #666;
+}
+
+.loading {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+}

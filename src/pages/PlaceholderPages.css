@@ -1,0 +1,101 @@
+.placeholder-page {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.placeholder-content {
+    text-align: center;
+    background: white;
+    padding: 4rem 3rem;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 2rem;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 2rem;
+}
+
+.placeholder-content h1 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+}
+
+.placeholder-content p {
+    color: #666;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.placeholder-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.placeholder-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.placeholder-actions .btn-primary {
+    background: #28a745;
+    color: white;
+    border: 2px solid #28a745;
+}
+
+.placeholder-actions .btn-primary:hover {
+    background: #218838;
+    border-color: #218838;
+    transform: translateY(-2px);
+}
+
+.placeholder-actions .btn-outline {
+    background: transparent;
+    color: #28a745;
+    border: 2px solid #28a745;
+}
+
+.placeholder-actions .btn-outline:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .placeholder-content {
+        padding: 3rem 2rem;
+        margin: 1rem;
+    }
+
+    .placeholder-content h1 {
+        font-size: 2rem;
+    }
+
+    .placeholder-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .placeholder-actions .btn {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+    }
+}

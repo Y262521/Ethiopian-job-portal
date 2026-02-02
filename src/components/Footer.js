@@ -11,10 +11,10 @@ const Footer = () => {
                         <h3>Ethiopia Job</h3>
                         <p>The leading job board in Ethiopia. Find jobs, connect with employers, and advance your career.</p>
                         <div className="social-links">
-                            <a href="#" aria-label="Facebook"><i className="fab fa-facebook"></i></a>
-                            <a href="#" aria-label="Twitter"><i className="fab fa-twitter"></i></a>
-                            <a href="#" aria-label="LinkedIn"><i className="fab fa-linkedin"></i></a>
-                            <a href="#" aria-label="Instagram"><i className="fab fa-instagram"></i></a>
+                            <button type="button" aria-label="Facebook"><i className="fab fa-facebook"></i></button>
+                            <button type="button" aria-label="Twitter"><i className="fab fa-twitter"></i></button>
+                            <button type="button" aria-label="LinkedIn"><i className="fab fa-linkedin"></i></button>
+                            <button type="button" aria-label="Instagram"><i className="fab fa-instagram"></i></button>
                         </div>
                     </div>
 

@@ -6,6 +6,25 @@ const db = require('../config/sqlite');
 
 const router = express.Router();
 
+// Base auth route for testing
+router.get('/', (req, res) => {
+    res.json({
+        message: 'Auth routes are working',
+        endpoints: {
+            login: 'POST /api/auth/login',
+            register: 'POST /api/auth/register'
+        }
+    });
+});
+
+// Test route to verify auth routes are mounted
+router.get('/test', (req, res) => {
+    res.json({
+        message: 'Auth test route working',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Validation middleware
 const validateRegistration = [
     body('userType').isIn(['jobseeker', 'employer']).withMessage('Invalid user type'),

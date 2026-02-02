@@ -14,6 +14,29 @@ const PaymentManagement = () => {
         totalRevenue: 0
     });
 
+    // Define fetchPayments before useEffect to avoid hoisting issues
+    const fetchPayments = useCallback(async () => {
+        try {
+            setLoading(true);
+            console.log('🔍 Fetching payments for status:', activeTab);
+
+            const response = await getAllPayments(activeTab, 100, 0);
+
+            if (response.success) {
+                console.log('✅ Payments loaded:', response.payments);
+                setPayments(response.payments || []);
+            } else {
+                console.error('❌ Failed to fetch payments:', response.error);
+                setPayments([]);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching payments:', error);
+            setPayments([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab]);
+
     useEffect(() => {
         fetchPayments();
         fetchSummaryStats();
@@ -37,28 +60,6 @@ const PaymentManagement = () => {
             console.error('❌ Error fetching summary stats:', error);
         }
     };
-
-    const fetchPayments = useCallback(async () => {
-        try {
-            setLoading(true);
-            console.log('🔍 Fetching payments for status:', activeTab);
-
-            const response = await getAllPayments(activeTab, 100, 0);
-
-            if (response.success) {
-                console.log('✅ Payments loaded:', response.payments);
-                setPayments(response.payments || []);
-            } else {
-                console.error('❌ Failed to fetch payments:', response.error);
-                setPayments([]);
-            }
-        } catch (error) {
-            console.error('❌ Error fetching payments:', error);
-            setPayments([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [activeTab]);
 
     const handlePaymentAction = async (paymentId, action) => {
         try {

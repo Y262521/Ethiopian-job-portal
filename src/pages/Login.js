@@ -11,7 +11,6 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [redirectMessage, setRedirectMessage] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -24,7 +23,7 @@ const Login = () => {
 
         // Check for success message from registration
         if (location.state?.message) {
-            setSuccessMessage(location.state.message);
+            // Show redirect message if needed
             if (location.state.showRedirectMessage) {
                 setRedirectMessage('After logging in, you will be redirected to continue your job application.');
             }

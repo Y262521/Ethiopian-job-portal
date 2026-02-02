@@ -248,18 +248,18 @@ const BlogPost = () => {
                         <div className="post-share">
                             <h4>Share this post:</h4>
                             <div className="share-buttons">
-                                <a href="#" className="share-btn facebook">
+                                <button type="button" className="share-btn facebook" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, '_blank')}>
                                     <i className="fab fa-facebook-f"></i>
-                                </a>
-                                <a href="#" className="share-btn twitter">
+                                </button>
+                                <button type="button" className="share-btn twitter" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${window.location.href}&text=${encodeURIComponent('Check out this blog post')}`, '_blank')}>
                                     <i className="fab fa-twitter"></i>
-                                </a>
-                                <a href="#" className="share-btn linkedin">
+                                </button>
+                                <button type="button" className="share-btn linkedin" onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}`, '_blank')}>
                                     <i className="fab fa-linkedin-in"></i>
-                                </a>
-                                <a href="#" className="share-btn whatsapp">
+                                </button>
+                                <button type="button" className="share-btn whatsapp" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('Check out this blog post - ' + window.location.href)}`, '_blank')}>
                                     <i className="fab fa-whatsapp"></i>
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>

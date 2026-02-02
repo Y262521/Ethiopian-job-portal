@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getJobsForModeration, updateJobStatus } from '../services/api';
 import './JobModeration.css';
 
@@ -8,11 +8,8 @@ const JobModeration = () => {
     const [filter, setFilter] = useState('pending');
     const [selectedJob, setSelectedJob] = useState(null);
 
-    useEffect(() => {
-        fetchJobs();
-    }, [filter]);
-
-    const fetchJobs = async () => {
+    // Define fetchJobs before useEffect to avoid hoisting issues
+    const fetchJobs = useCallback(async () => {
         try {
             setLoading(true);
             const response = await getJobsForModeration(filter);
@@ -24,7 +21,11 @@ const JobModeration = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
+
+    useEffect(() => {
+        fetchJobs();
+    }, [fetchJobs]);
 
     const handleJobAction = async (jobId, action, reason = '') => {
         try {

@@ -16,17 +16,19 @@ process.on('unhandledRejection', (reason, promise) => {
     // Don't exit the process, just log the error
 });
 
+let authRoutes, jobRoutes, companyRoutes, categoryRoutes, userRoutes, adminRoutes, paymentRoutes, applicationRoutes, savedJobsRoutes, jobAlertsRoutes;
+
 try {
-    const authRoutes = require('./routes/auth');
-    const jobRoutes = require('./routes/jobs');
-    const companyRoutes = require('./routes/companies');
-    const categoryRoutes = require('./routes/categories');
-    const userRoutes = require('./routes/users');
-    const adminRoutes = require('./routes/admin');
-    const paymentRoutes = require('./routes/payments');
-    const applicationRoutes = require('./routes/applications');
-    const savedJobsRoutes = require('./routes/savedJobs');
-    const jobAlertsRoutes = require('./routes/jobAlerts');
+    authRoutes = require('./routes/auth');
+    jobRoutes = require('./routes/jobs');
+    companyRoutes = require('./routes/companies');
+    categoryRoutes = require('./routes/categories');
+    userRoutes = require('./routes/users');
+    adminRoutes = require('./routes/admin');
+    paymentRoutes = require('./routes/payments');
+    applicationRoutes = require('./routes/applications');
+    savedJobsRoutes = require('./routes/savedJobs');
+    jobAlertsRoutes = require('./routes/jobAlerts');
 
     console.log('✅ All route modules loaded successfully');
 } catch (error) {

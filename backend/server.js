@@ -28,7 +28,6 @@ const savedJobsRoutes = require('./routes/savedJobs');
 const jobAlertsRoutes = require('./routes/jobAlerts');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
@@ -46,9 +45,16 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration - Updated for production
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'],
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'https://ethiopia-job-portal.netlify.app',
+        process.env.FRONTEND_URL
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -83,8 +89,23 @@ app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
-        message: 'Ethiopia Job API is running',
-        timestamp: new Date().toISOString()
+        message: 'Ethiopia Job Portal API is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Ethiopia Job Portal API',
+        status: 'running',
+        endpoints: {
+            health: '/api/health',
+            auth: '/api/auth',
+            jobs: '/api/jobs',
+            companies: '/api/companies'
+        }
     });
 });
 
@@ -109,15 +130,22 @@ app.use('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Ethiopia Job API server running on port ${PORT}`);
-    console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-    console.log(`🛡️  Process error handlers installed`);
+// For Vercel serverless deployment
+if (process.env.NODE_ENV === 'production' && process.env.VERCEL) {
+    module.exports = app;
+} else {
+    // For local development
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Ethiopia Job API server running on port ${PORT}`);
+        console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL}`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+        console.log(`🛡️  Process error handlers installed`);
 
-    // Log server health every 30 seconds
-    setInterval(() => {
-        const memUsage = process.memoryUsage();
-        console.log(`💚 Server healthy - Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
-    }, 30000);
-});
+        // Log server health every 30 seconds
+        setInterval(() => {
+            const memUsage = process.memoryUsage();
+            console.log(`💚 Server healthy - Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+        }, 30000);
+    });
+}

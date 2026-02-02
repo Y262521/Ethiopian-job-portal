@@ -16,16 +16,23 @@ process.on('unhandledRejection', (reason, promise) => {
     // Don't exit the process, just log the error
 });
 
-const authRoutes = require('./routes/auth');
-const jobRoutes = require('./routes/jobs');
-const companyRoutes = require('./routes/companies');
-const categoryRoutes = require('./routes/categories');
-const userRoutes = require('./routes/users');
-const adminRoutes = require('./routes/admin');
-const paymentRoutes = require('./routes/payments');
-const applicationRoutes = require('./routes/applications');
-const savedJobsRoutes = require('./routes/savedJobs');
-const jobAlertsRoutes = require('./routes/jobAlerts');
+try {
+    const authRoutes = require('./routes/auth');
+    const jobRoutes = require('./routes/jobs');
+    const companyRoutes = require('./routes/companies');
+    const categoryRoutes = require('./routes/categories');
+    const userRoutes = require('./routes/users');
+    const adminRoutes = require('./routes/admin');
+    const paymentRoutes = require('./routes/payments');
+    const applicationRoutes = require('./routes/applications');
+    const savedJobsRoutes = require('./routes/savedJobs');
+    const jobAlertsRoutes = require('./routes/jobAlerts');
+
+    console.log('✅ All route modules loaded successfully');
+} catch (error) {
+    console.error('❌ Error loading route modules:', error);
+    process.exit(1);
+}
 
 const app = express();
 
@@ -84,6 +91,11 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/saved-jobs', savedJobsRoutes);
 app.use('/api/job-alerts', jobAlertsRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Test route to debug auth mounting
+app.get('/api/test-auth', (req, res) => {
+    res.json({ message: 'Auth route mounting test', timestamp: new Date().toISOString() });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

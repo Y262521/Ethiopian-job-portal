@@ -52,7 +52,7 @@ app.use(cors({
         'http://localhost:3001',
         'http://127.0.0.1:3000',
         'http://127.0.0.1:3001',
-        'https://ethiopia-job-portal.netlify.app',
+        'https://ethiopian-job-portal.netlify.app',
         process.env.FRONTEND_URL
     ].filter(Boolean),
     credentials: true,

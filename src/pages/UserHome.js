@@ -41,7 +41,7 @@ const UserHome = () => {
 
         // Fetch recent activity
         fetchRecentActivity(parsedUser.email);
-    }, [navigate]);
+    }, [navigate, fetchRecentJobs]);
 
     const fetchUserStats = async (email) => {
         try {

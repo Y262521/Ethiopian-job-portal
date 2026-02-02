@@ -7,7 +7,6 @@ const PaymentManagement = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [totalPayments, setTotalPayments] = useState(0);
     const [summaryStats, setSummaryStats] = useState({
         total: 0,
         pending: 0,
@@ -18,7 +17,7 @@ const PaymentManagement = () => {
     useEffect(() => {
         fetchPayments();
         fetchSummaryStats();
-    }, [activeTab]);
+    }, [activeTab, fetchPayments]);
 
     const fetchSummaryStats = async () => {
         try {

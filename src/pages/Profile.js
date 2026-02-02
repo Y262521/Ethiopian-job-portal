@@ -30,7 +30,6 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [photoPreview, setPhotoPreview] = useState(null);
-    const [activeSection, setActiveSection] = useState('personal');
     const navigate = useNavigate();
 
     useEffect(() => {

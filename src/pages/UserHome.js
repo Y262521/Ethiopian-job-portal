@@ -20,6 +20,34 @@ const UserHome = () => {
     const [savedJobsStatus, setSavedJobsStatus] = useState({});
     const navigate = useNavigate();
 
+    // Define fetchRecentJobs before useEffect to avoid hoisting issues
+    const fetchRecentJobs = useCallback(async () => {
+        try {
+            const response = await fetchJobs({ limit: 6 });
+            const jobs = response.jobs || [];
+            setRecentJobs(jobs);
+
+            // Check saved status for each job if user is logged in
+            if (user && user.type === 'jobseeker') {
+                const savedStatus = {};
+                for (const job of jobs) {
+                    try {
+                        const savedResponse = await checkJobSaved(user.email, job.id);
+                        savedStatus[job.id] = savedResponse.isSaved;
+                    } catch (error) {
+                        console.error(`Error checking saved status for job ${job.id}:`, error);
+                        savedStatus[job.id] = false;
+                    }
+                }
+                setSavedJobsStatus(savedStatus);
+            }
+        } catch (error) {
+            console.error('Error fetching recent jobs:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
     useEffect(() => {
         // Check if user is logged in
         const userData = localStorage.getItem('user');
@@ -87,33 +115,6 @@ const UserHome = () => {
             setRecentActivity([]);
         }
     };
-
-    const fetchRecentJobs = useCallback(async () => {
-        try {
-            const response = await fetchJobs({ limit: 6 });
-            const jobs = response.jobs || [];
-            setRecentJobs(jobs);
-
-            // Check saved status for each job if user is logged in
-            if (user && user.type === 'jobseeker') {
-                const savedStatus = {};
-                for (const job of jobs) {
-                    try {
-                        const savedResponse = await checkJobSaved(user.email, job.id);
-                        savedStatus[job.id] = savedResponse.isSaved;
-                    } catch (error) {
-                        console.error(`Error checking saved status for job ${job.id}:`, error);
-                        savedStatus[job.id] = false;
-                    }
-                }
-                setSavedJobsStatus(savedStatus);
-            }
-        } catch (error) {
-            console.error('Error fetching recent jobs:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [user]);
 
     const getGreeting = () => {
         const hour = new Date().getHours();

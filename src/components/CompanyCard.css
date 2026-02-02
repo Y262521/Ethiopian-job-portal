@@ -106,6 +106,48 @@
     color: #28a745;
 }
 
+/* Button Styles for Company Card */
+.company-card .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.company-card .btn-outline {
+    background: transparent;
+    border: 2px solid #28a745;
+    color: #28a745;
+}
+
+.company-card .btn-outline:hover {
+    background: #28a745;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.company-card .btn-primary {
+    background: #28a745;
+    color: white;
+    border: 2px solid #28a745;
+}
+
+.company-card .btn-primary:hover {
+    background: #218838;
+    border-color: #218838;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
     .company-header {
         flex-direction: column;

@@ -7,21 +7,68 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    // Add click handlers for admin tools
+    const handleToolClick = (toolName) => {
+        switch (toolName) {
+            case 'approve-users':
+                navigate('/admin/user-management');
+                break;
+            case 'moderate-jobs':
+                navigate('/admin/job-moderation');
+                break;
+            case 'revenue-reports':
+                alert('Revenue reports feature coming soon!');
+                break;
+            case 'pricing-settings':
+                navigate('/pricing');
+                break;
+            case 'suspend-users':
+                navigate('/admin/user-management');
+                break;
+            case 'send-notifications':
+                navigate('/admin/notifications');
+                break;
+            case 'verify-companies':
+                alert('Company verification feature coming soon!');
+                break;
+            case 'feature-content':
+                alert('Content featuring system coming soon!');
+                break;
+            case 'database-backup':
+                navigate('/admin/database');
+                break;
+            case 'security-settings':
+                alert('Security settings panel coming soon!');
+                break;
+            case 'system-alerts':
+                alert('System alerts dashboard coming soon!');
+                break;
+            case 'analytics':
+                navigate('/admin/analytics');
+                break;
+            default:
+                alert('Feature coming soon!');
+        }
+    };
+
     useEffect(() => {
         // Check if admin is logged in
-        const adminToken = localStorage.getItem('adminToken');
-        const adminUser = localStorage.getItem('adminUser');
+        const userData = localStorage.getItem('user');
 
-        if (!adminToken || !adminUser) {
+        if (!userData) {
             navigate('/login');
             return;
         }
 
         try {
-            const parsedAdmin = JSON.parse(adminUser);
-            setAdmin(parsedAdmin);
+            const parsedUser = JSON.parse(userData);
+            if (parsedUser.type !== 'admin') {
+                navigate('/login');
+                return;
+            }
+            setAdmin(parsedUser);
         } catch (error) {
-            console.error('Error parsing admin data:', error);
+            console.error('Error parsing user data:', error);
             navigate('/login');
             return;
         }
@@ -50,14 +97,13 @@ const AdminDashboard = () => {
                             <i className="fas fa-user-shield"></i>
                         </div>
                         <div className="admin-info">
-                            <h2>Welcome, {admin?.name}!</h2>
+                            <h2>Welcome, {admin?.name || admin?.username || 'Administrator'}!</h2>
                             <p>Ethiopia Job Administration Panel</p>
-                            <small>Logged in as: {admin?.email}</small>
                         </div>
                     </div>
                     <div className="admin-actions">
                         <button
-                            onClick={() => window.open('http://localhost:5000/admin/dashboard', '_blank')}
+                            onClick={() => navigate('/admin/database')}
                             className="btn btn-primary"
                         >
                             <i className="fas fa-database"></i>
@@ -78,7 +124,12 @@ const AdminDashboard = () => {
                             <div className="stat-content">
                                 <h3>User Management</h3>
                                 <p>Manage job seekers and employers</p>
-                                <button className="stat-btn">View Users</button>
+                                <button
+                                    className="stat-btn"
+                                    onClick={() => navigate('/admin/user-management')}
+                                >
+                                    View Users
+                                </button>
                             </div>
                         </div>
 
@@ -91,7 +142,7 @@ const AdminDashboard = () => {
                                 <p>Approve payments and track revenue</p>
                                 <button
                                     className="stat-btn"
-                                    onClick={() => window.open('http://localhost:5000/admin/dashboard', '_blank')}
+                                    onClick={() => navigate('/admin/payments')}
                                 >
                                     Manage Payments
                                 </button>
@@ -105,7 +156,12 @@ const AdminDashboard = () => {
                             <div className="stat-content">
                                 <h3>Job Management</h3>
                                 <p>Monitor and moderate job postings</p>
-                                <button className="stat-btn">View Jobs</button>
+                                <button
+                                    className="stat-btn"
+                                    onClick={() => navigate('/admin/jobs')}
+                                >
+                                    View All Jobs
+                                </button>
                             </div>
                         </div>
 
@@ -116,7 +172,12 @@ const AdminDashboard = () => {
                             <div className="stat-content">
                                 <h3>Analytics</h3>
                                 <p>View platform statistics and reports</p>
-                                <button className="stat-btn">View Analytics</button>
+                                <button
+                                    className="stat-btn"
+                                    onClick={() => handleToolClick('analytics')}
+                                >
+                                    View Analytics
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -134,16 +195,22 @@ const AdminDashboard = () => {
                             <div className="tool-buttons">
                                 <button
                                     className="tool-btn"
-                                    onClick={() => window.open('http://localhost:5000/admin/dashboard', '_blank')}
+                                    onClick={() => navigate('/admin/database')}
                                 >
                                     <i className="fas fa-eye"></i>
-                                    View Pending Payments
+                                    View Database Dashboard
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('revenue-reports')}
+                                >
                                     <i className="fas fa-chart-line"></i>
                                     Revenue Reports
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('pricing-settings')}
+                                >
                                     <i className="fas fa-cog"></i>
                                     Pricing Settings
                                 </button>
@@ -153,15 +220,24 @@ const AdminDashboard = () => {
                         <div className="tool-section">
                             <h3>👥 User Management</h3>
                             <div className="tool-buttons">
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('approve-users')}
+                                >
                                     <i className="fas fa-user-check"></i>
                                     Approve Users
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('suspend-users')}
+                                >
                                     <i className="fas fa-ban"></i>
                                     Suspend Users
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('send-notifications')}
+                                >
                                     <i className="fas fa-envelope"></i>
                                     Send Notifications
                                 </button>
@@ -171,15 +247,24 @@ const AdminDashboard = () => {
                         <div className="tool-section">
                             <h3>🏢 Content Management</h3>
                             <div className="tool-buttons">
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('moderate-jobs')}
+                                >
                                     <i className="fas fa-briefcase"></i>
                                     Moderate Jobs
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('verify-companies')}
+                                >
                                     <i className="fas fa-building"></i>
                                     Verify Companies
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('feature-content')}
+                                >
                                     <i className="fas fa-star"></i>
                                     Feature Content
                                 </button>
@@ -189,15 +274,24 @@ const AdminDashboard = () => {
                         <div className="tool-section">
                             <h3>⚙️ System Settings</h3>
                             <div className="tool-buttons">
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('database-backup')}
+                                >
                                     <i className="fas fa-database"></i>
                                     Database Backup
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('security-settings')}
+                                >
                                     <i className="fas fa-shield-alt"></i>
                                     Security Settings
                                 </button>
-                                <button className="tool-btn">
+                                <button
+                                    className="tool-btn"
+                                    onClick={() => handleToolClick('system-alerts')}
+                                >
                                     <i className="fas fa-bell"></i>
                                     System Alerts
                                 </button>
@@ -213,13 +307,11 @@ const AdminDashboard = () => {
                     <h2>Quick Access</h2>
                     <div className="access-links">
                         <a
-                            href="http://localhost:5000/admin/dashboard"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href="/admin/database"
                             className="access-link"
                         >
-                            <i className="fas fa-external-link-alt"></i>
-                            Full Database Dashboard
+                            <i className="fas fa-database"></i>
+                            Database Dashboard
                         </a>
                         <a href="/" className="access-link">
                             <i className="fas fa-home"></i>

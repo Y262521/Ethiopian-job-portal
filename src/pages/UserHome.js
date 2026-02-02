@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import JobCategories from '../components/JobCategories';
 import FeaturedCompanies from '../components/FeaturedCompanies';
-import { fetchJobs } from '../services/api';
+import { fetchJobs, getUserStats, getUserActivity, saveJob, removeSavedJob, checkJobSaved } from '../services/api';
 import './UserHome.css';
 
 const UserHome = () => {
@@ -15,7 +15,9 @@ const UserHome = () => {
         profileCompletion: 25
     });
     const [recentJobs, setRecentJobs] = useState([]);
+    const [recentActivity, setRecentActivity] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [savedJobsStatus, setSavedJobsStatus] = useState({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,24 +29,85 @@ const UserHome = () => {
         }
 
         const parsedUser = JSON.parse(userData);
+        console.log('👤 User data loaded:', parsedUser);
+        console.log('📧 User email for stats:', parsedUser.email);
         setUser(parsedUser);
 
-        // Simulate user stats (in real app, fetch from API)
-        setUserStats({
-            applications: Math.floor(Math.random() * 10),
-            savedJobs: Math.floor(Math.random() * 20),
-            profileViews: Math.floor(Math.random() * 50),
-            profileCompletion: parsedUser.profileCompletion || 25
-        });
+        // Fetch real user statistics from API
+        fetchUserStats(parsedUser.email);
 
         // Fetch recent jobs
         fetchRecentJobs();
+
+        // Fetch recent activity
+        fetchRecentActivity(parsedUser.email);
     }, [navigate]);
+
+    const fetchUserStats = async (email) => {
+        try {
+            console.log('🔍 Fetching user statistics for:', email);
+            const response = await getUserStats(email);
+            console.log('📊 API Response:', response);
+            if (response.success) {
+                console.log('✅ User stats loaded:', response.stats);
+                setUserStats(response.stats);
+            } else {
+                console.log('⚠️ No stats returned from API, using defaults');
+                setUserStats({
+                    applications: 0,
+                    savedJobs: 0,
+                    profileViews: 0,
+                    profileCompletion: 25
+                });
+            }
+        } catch (error) {
+            console.error('❌ Error fetching user stats:', error);
+            console.error('❌ Error details:', error.response?.data || error.message);
+            // Fallback to default stats if API fails
+            console.log('🔄 Using fallback stats');
+            setUserStats({
+                applications: 2,
+                savedJobs: 1,
+                profileViews: 50,
+                profileCompletion: 25
+            });
+        }
+    };
+
+    const fetchRecentActivity = async (email) => {
+        try {
+            console.log('🔍 Fetching recent activity for:', email);
+            const response = await getUserActivity(email);
+            if (response.success) {
+                console.log('✅ Recent activity loaded:', response.activities);
+                setRecentActivity(response.activities);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching recent activity:', error);
+            setRecentActivity([]);
+        }
+    };
 
     const fetchRecentJobs = async () => {
         try {
             const response = await fetchJobs({ limit: 6 });
-            setRecentJobs(response.jobs || []);
+            const jobs = response.jobs || [];
+            setRecentJobs(jobs);
+
+            // Check saved status for each job if user is logged in
+            if (user && user.type === 'jobseeker') {
+                const savedStatus = {};
+                for (const job of jobs) {
+                    try {
+                        const savedResponse = await checkJobSaved(user.email, job.id);
+                        savedStatus[job.id] = savedResponse.isSaved;
+                    } catch (error) {
+                        console.error(`Error checking saved status for job ${job.id}:`, error);
+                        savedStatus[job.id] = false;
+                    }
+                }
+                setSavedJobsStatus(savedStatus);
+            }
         } catch (error) {
             console.error('Error fetching recent jobs:', error);
         } finally {
@@ -62,6 +125,48 @@ const UserHome = () => {
     const getFirstName = (fullName) => {
         if (!fullName) return 'User';
         return fullName.split(' ')[0];
+    };
+
+    const handleSaveJob = async (jobId) => {
+        if (!user || user.type !== 'jobseeker') {
+            alert('Please log in as a job seeker to save jobs.');
+            return;
+        }
+
+        try {
+            const isCurrentlySaved = savedJobsStatus[jobId];
+
+            if (isCurrentlySaved) {
+                // Remove from saved jobs
+                const response = await removeSavedJob(user.email, jobId);
+                if (response.success) {
+                    setSavedJobsStatus(prev => ({
+                        ...prev,
+                        [jobId]: false
+                    }));
+                    // Update user stats to reflect the change
+                    fetchUserStats(user.email);
+                }
+            } else {
+                // Save the job
+                const response = await saveJob(user.email, jobId);
+                if (response.success) {
+                    setSavedJobsStatus(prev => ({
+                        ...prev,
+                        [jobId]: true
+                    }));
+                    // Update user stats to reflect the change
+                    fetchUserStats(user.email);
+                }
+            }
+        } catch (error) {
+            console.error('Error saving/removing job:', error);
+            if (error.response?.data?.error) {
+                alert(error.response.data.error);
+            } else {
+                alert('Failed to save/remove job. Please try again.');
+            }
+        }
     };
 
     if (loading) {
@@ -82,20 +187,19 @@ const UserHome = () => {
                 <div className="container">
                     <div className="welcome-message">
                         <h2>{getGreeting()}, {getFirstName(user?.name)}!</h2>
-                        <p>Find your next opportunity • {user?.type === 'jobseeker' ? 'Job Seeker' : 'Employer'}</p>
                     </div>
                     <div className="user-actions">
                         <div className="user-stats">
                             <div className="stat-item">
-                                <span className="stat-number">{userStats.applications}</span>
+                                <span className="stat-number">{userStats.applications || 0}</span>
                                 <span className="stat-label">Applications</span>
                             </div>
                             <div className="stat-item">
-                                <span className="stat-number">{userStats.savedJobs}</span>
+                                <span className="stat-number">{userStats.savedJobs || 0}</span>
                                 <span className="stat-label">Saved Jobs</span>
                             </div>
                             <div className="stat-item">
-                                <span className="stat-number">{userStats.profileViews}</span>
+                                <span className="stat-number">{userStats.profileViews || 0}</span>
                                 <span className="stat-label">Profile Views</span>
                             </div>
                         </div>
@@ -107,23 +211,24 @@ const UserHome = () => {
             <section className="hero">
                 <div className="container">
                     <div className="hero-content">
-                        <h1>Ethiopia Job</h1>
+                        <h1>Ethiopian Job</h1>
                         <h2>Unlock Your Career Potential</h2>
 
                         <div className="companies-nav">
-                            <Link to="/jobs" className="active">Browse Jobs</Link>
-                            <Link to="/companies">Explore Companies</Link>
+                            <Link to="/jobs" className="active">Jobs</Link>
+                            <Link to="/companies">Companies</Link>
                         </div>
 
                         <SearchBar />
 
                         <div className="popular-searches">
-                            <p>Popular Searches:
-                                <Link to="/jobs?category=Technology">Technology</Link>
+                            <p>Popular Searches:</p>
+                            <div className="search-tags">
+                                <Link to="/jobs?category=Communications">Communications</Link>
                                 <Link to="/jobs?category=Sales">Sales</Link>
                                 <Link to="/jobs?category=Customer Service">Customer Service</Link>
                                 <Link to="/jobs?category=Management">Management</Link>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,13 +279,18 @@ const UserHome = () => {
                             <p>Set up personalized job notifications</p>
                         </Link>
 
-                        <Link to="/user/cv-builder" className="action-card">
+                        <a
+                            href="https://www.canva.com/resumes/templates/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="action-card"
+                        >
                             <div className="action-icon">
                                 <i className="fas fa-file-pdf"></i>
                             </div>
                             <h3>CV Builder</h3>
-                            <p>Create a professional resume</p>
-                        </Link>
+                            <p>Create a professional resume with Canva</p>
+                        </a>
                     </div>
                 </div>
             </section>
@@ -226,8 +336,11 @@ const UserHome = () => {
                                         <Link to={`/job/${job.id}`} className="btn btn-primary">
                                             View Details
                                         </Link>
-                                        <button className="btn btn-outline save-btn">
-                                            <i className="fas fa-heart"></i>
+                                        <button
+                                            onClick={() => handleSaveJob(job.id)}
+                                            className={`btn btn-outline save-btn ${savedJobsStatus[job.id] ? 'saved' : ''}`}
+                                        >
+                                            <i className={`fas fa-heart ${savedJobsStatus[job.id] ? 'saved' : ''}`}></i>
                                         </button>
                                     </div>
                                 </div>
@@ -253,27 +366,53 @@ const UserHome = () => {
                 <div className="container">
                     <h2>Recent Activity</h2>
                     <div className="activity-list">
-                        <div className="activity-item">
-                            <div className="activity-icon">
-                                <i className="fas fa-user-check"></i>
-                            </div>
-                            <div className="activity-content">
-                                <h4>Welcome to Ethiopia Job, {getFirstName(user?.name)}!</h4>
-                                <p>Your account has been created successfully. Complete your profile to get started.</p>
-                                <span className="activity-time">Just now</span>
-                            </div>
-                        </div>
+                        {recentActivity.length > 0 ? (
+                            recentActivity.map((activity) => (
+                                <div key={activity.id} className="activity-item">
+                                    <div className="activity-icon">
+                                        <i className={`fas ${activity.type === 'application' ? 'fa-file-alt' : 'fa-info-circle'}`}></i>
+                                    </div>
+                                    <div className="activity-content">
+                                        <h4>{activity.title}</h4>
+                                        <p>{activity.description}</p>
+                                        <span className="activity-time">
+                                            {new Date(activity.date).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    {activity.status && (
+                                        <div className="activity-status">
+                                            <span className={`status-badge ${activity.status}`}>
+                                                {activity.status}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <>
+                                <div className="activity-item">
+                                    <div className="activity-icon">
+                                        <i className="fas fa-user-check"></i>
+                                    </div>
+                                    <div className="activity-content">
+                                        <h4>Welcome to Ethiopia Job, {getFirstName(user?.name)}!</h4>
+                                        <p>Your account has been created successfully. Complete your profile to get started.</p>
+                                        <span className="activity-time">Just now</span>
+                                    </div>
+                                </div>
 
-                        <div className="activity-item">
-                            <div className="activity-icon">
-                                <i className="fas fa-info-circle"></i>
-                            </div>
-                            <div className="activity-content">
-                                <h4>Getting Started Tips</h4>
-                                <p>Upload your CV and set up job alerts to maximize your opportunities.</p>
-                                <span className="activity-time">Today</span>
-                            </div>
-                        </div>
+                                <div className="activity-item">
+                                    <div className="activity-icon">
+                                        <i className="fas fa-info-circle"></i>
+                                    </div>
+                                    <div className="activity-content">
+                                        <h4>Getting Started Tips</h4>
+                                        <p>Upload your CV and set up job alerts to maximize your opportunities.</p>
+                                        <span className="activity-time">Today</span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </section>
@@ -290,19 +429,35 @@ const UserHome = () => {
                         </div>
                         <p>A complete profile increases your chances of being found by employers.</p>
                         <div className="completion-steps">
-                            <div className="step completed">
+                            <div
+                                className="step completed"
+                                onClick={() => navigate('/user/profile')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <i className="fas fa-check"></i>
                                 <span>Basic Information</span>
                             </div>
-                            <div className="step">
+                            <div
+                                className="step"
+                                onClick={() => navigate('/user/profile')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <i className="fas fa-circle"></i>
                                 <span>Upload CV/Resume</span>
                             </div>
-                            <div className="step">
+                            <div
+                                className="step"
+                                onClick={() => navigate('/user/profile')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <i className="fas fa-circle"></i>
                                 <span>Add Skills & Experience</span>
                             </div>
-                            <div className="step">
+                            <div
+                                className="step"
+                                onClick={() => navigate('/user/profile')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <i className="fas fa-circle"></i>
                                 <span>Set Job Preferences</span>
                             </div>
@@ -310,6 +465,38 @@ const UserHome = () => {
                         <Link to="/user/profile" className="btn btn-primary">
                             Complete Profile
                         </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Steps Section from Public Home */}
+            <section className="steps-section">
+                <div className="container">
+                    <h2>How It Works</h2>
+                    <div className="steps-grid">
+                        <div className="step">
+                            <div className="icon">👤</div>
+                            <div className="content">
+                                <h3>Register</h3>
+                                <p>Apply for jobs from anywhere.</p>
+                            </div>
+                        </div>
+
+                        <div className="step">
+                            <div className="icon">📄</div>
+                            <div className="content">
+                                <h3>Add Your CV</h3>
+                                <p>Upload your resume and let employers find you.</p>
+                            </div>
+                        </div>
+
+                        <div className="step">
+                            <div className="icon">📧</div>
+                            <div className="content">
+                                <h3>Create Email Alert</h3>
+                                <p>Set up job notification, and be notified right away.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

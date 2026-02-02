@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { fetchJobs, searchJobs } from '../services/api';
+import { fetchJobs } from '../services/api';
+import { getAllJobs } from '../utils/jobStorage';
 import JobCard from '../components/JobCard';
 import SearchFilters from '../components/SearchFilters';
 import './Jobs.css';
@@ -110,31 +111,33 @@ const Jobs = () => {
         const loadJobs = async () => {
             setLoading(true);
             try {
-                const searchQuery = searchParams.get('search');
-                const category = searchParams.get('category');
+                console.log('🔍 Starting to load jobs...');
 
-                let data;
-                if (searchQuery) {
-                    data = await searchJobs(searchQuery, {
-                        category,
-                        page: currentPage
-                    });
-                } else {
-                    data = await fetchJobs({
-                        category,
-                        page: currentPage
-                    });
+                let apiJobs = [];
+
+                // Try to fetch from API first
+                try {
+                    console.log('🌐 Attempting to fetch jobs from API...');
+                    const apiResponse = await fetchJobs();
+                    if (apiResponse && apiResponse.jobs) {
+                        apiJobs = apiResponse.jobs;
+                        console.log('✅ Loaded jobs from API:', apiJobs.length, apiJobs);
+                    } else {
+                        console.log('⚠️ API response format unexpected:', apiResponse);
+                    }
+                } catch (apiError) {
+                    console.warn('⚠️ API fetch failed, using localStorage and sample data:', apiError.message);
                 }
 
-                setJobs(data.jobs || []);
-                setTotalPages(data.totalPages || 1);
-            } catch (error) {
-                console.error('Error loading jobs:', error);
-                // Use fallback data when API fails
-                let filteredJobs = [...sampleJobs];
+                // Combine API jobs, localStorage jobs, and sample jobs
+                const allJobs = getAllJobs([...apiJobs, ...sampleJobs]);
+                console.log('📊 Total jobs available:', allJobs.length);
 
                 const searchQuery = searchParams.get('search');
                 const category = searchParams.get('category');
+                console.log('🔍 Search params:', { searchQuery, category });
+
+                let filteredJobs = [...allJobs];
 
                 if (searchQuery) {
                     filteredJobs = filteredJobs.filter(job =>
@@ -150,7 +153,14 @@ const Jobs = () => {
                     );
                 }
 
+                console.log('✅ Showing filtered jobs:', filteredJobs.length);
                 setJobs(filteredJobs);
+                setTotalPages(1);
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                // Fallback to localStorage and sample jobs only
+                const fallbackJobs = getAllJobs(sampleJobs);
+                setJobs(fallbackJobs);
                 setTotalPages(1);
             } finally {
                 setLoading(false);

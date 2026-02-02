@@ -111,6 +111,47 @@
     font-weight: 600;
 }
 
+/* Button Styles for Job Detail Page */
+.job-detail-page .btn {
+    display: inline-block !important;
+    padding: 12px 24px !important;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none !important;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-align: center;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.job-detail-page .btn-primary {
+    background-color: #28a745 !important;
+    color: white !important;
+    border: 2px solid #28a745 !important;
+}
+
+.job-detail-page .btn-primary:hover {
+    background-color: #218838 !important;
+    color: white !important;
+    text-decoration: none !important;
+    transform: translateY(-1px);
+}
+
+.job-detail-page .btn-outline {
+    background-color: transparent !important;
+    border: 2px solid #28a745 !important;
+    color: #28a745 !important;
+}
+
+.job-detail-page .btn-outline:hover {
+    background-color: #28a745 !important;
+    color: white !important;
+    text-decoration: none !important;
+    transform: translateY(-1px);
+}
+
 .job-description {
     background: white;
     padding: 2rem;
@@ -316,4 +357,16 @@
     .related-jobs-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Saved job button styles */
+.btn-outline.saved {
+    background: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+}
+
+.btn-outline.saved:hover {
+    background: #c82333 !important;
+    border-color: #c82333 !important;
 }

@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import SearchBar from '../components/SearchBar';
+import JobCategories from '../components/JobCategories';
+import FeaturedCompanies from '../components/FeaturedCompanies';
+import { getUserStats, getEmployerApplications } from '../services/api';
 import './EmployerHome.css';
 
 const EmployerHome = () => {
@@ -30,41 +34,56 @@ const EmployerHome = () => {
 
         setUser(parsedUser);
 
-        // Simulate employer stats (in real app, fetch from API)
-        setEmployerStats({
-            activeJobs: Math.floor(Math.random() * 15) + 1,
-            totalApplications: Math.floor(Math.random() * 100) + 10,
-            viewsThisMonth: Math.floor(Math.random() * 500) + 50,
-            hiredCandidates: Math.floor(Math.random() * 20) + 1
-        });
+        // Fetch real employer statistics from API
+        fetchEmployerStats(parsedUser.email);
 
-        // Simulate recent applications
-        setRecentApplications([
-            {
-                id: 1,
-                candidateName: "Abebe Kebede",
-                position: "Software Developer",
-                appliedDate: "2025-01-29",
-                status: "pending"
-            },
-            {
-                id: 2,
-                candidateName: "Meron Tadesse",
-                position: "Marketing Manager",
-                appliedDate: "2025-01-28",
-                status: "reviewed"
-            },
-            {
-                id: 3,
-                candidateName: "Daniel Haile",
-                position: "Customer Service Rep",
-                appliedDate: "2025-01-27",
-                status: "shortlisted"
-            }
-        ]);
+        // Fetch recent applications
+        fetchRecentApplications(parsedUser.id);
 
         setLoading(false);
     }, [navigate]);
+
+    const fetchEmployerStats = async (email) => {
+        try {
+            console.log('🔍 Fetching employer statistics for:', email);
+            const response = await getUserStats(email);
+            if (response.success) {
+                console.log('✅ Employer stats loaded:', response.stats);
+                setEmployerStats(response.stats);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching employer stats:', error);
+            // Fallback to default stats if API fails
+            setEmployerStats({
+                activeJobs: 0,
+                totalApplications: 0,
+                viewsThisMonth: 0,
+                hiredCandidates: 0
+            });
+        }
+    };
+
+    const fetchRecentApplications = async (employerId) => {
+        try {
+            console.log('🔍 Fetching recent applications for employer:', employerId);
+            const response = await getEmployerApplications(employerId);
+            if (response.success && response.applications) {
+                // Get the 3 most recent applications
+                const recent = response.applications.slice(0, 3).map(app => ({
+                    id: app.id,
+                    candidateName: app.full_name,
+                    position: app.job_title,
+                    appliedDate: new Date(app.applied_at).toLocaleDateString(),
+                    status: app.status
+                }));
+                console.log('✅ Recent applications loaded:', recent);
+                setRecentApplications(recent);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching recent applications:', error);
+            setRecentApplications([]);
+        }
+    };
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -94,7 +113,6 @@ const EmployerHome = () => {
                 <div className="container">
                     <div className="welcome-message">
                         <h2>{getGreeting()}, {getCompanyName(user?.name)}!</h2>
-                        <p>Manage your hiring • Find the best talent • Employer Dashboard</p>
                     </div>
                     <div className="employer-actions">
                         <div className="employer-stats">
@@ -118,6 +136,33 @@ const EmployerHome = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Hero Section */}
+            <section className="hero">
+                <div className="container">
+                    <div className="hero-content">
+                        <h1>Ethiopian Job</h1>
+                        <h2>Find the Perfect Talent</h2>
+
+                        <div className="companies-nav">
+                            <Link to="/jobs">Browse Talent</Link>
+                            <Link to="/companies" className="active">Companies</Link>
+                        </div>
+
+                        <SearchBar />
+
+                        <div className="popular-searches">
+                            <p>Popular Skills:</p>
+                            <div className="search-tags">
+                                <Link to="/jobs?category=Technology">Technology</Link>
+                                <Link to="/jobs?category=Sales">Sales</Link>
+                                <Link to="/jobs?category=Customer Service">Customer Service</Link>
+                                <Link to="/jobs?category=Management">Management</Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             {/* Quick Actions */}
             <section className="quick-actions">
@@ -184,13 +229,25 @@ const EmployerHome = () => {
                                     <span className={`status-badge ${application.status}`}>
                                         {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                                     </span>
-                                    <button className="btn btn-primary btn-sm">Review</button>
+                                    <Link
+                                        to="/employer/applications"
+                                        className="btn btn-primary btn-sm"
+                                        state={{ highlightApplicationId: application.id }}
+                                    >
+                                        Review
+                                    </Link>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
+
+            {/* Job Categories */}
+            <JobCategories />
+
+            {/* Featured Companies */}
+            <FeaturedCompanies />
 
             {/* Hiring Tips */}
             <section className="hiring-tips">
@@ -219,6 +276,38 @@ const EmployerHome = () => {
                             </div>
                             <h3>Highlight Company Culture</h3>
                             <p>Showcase your work environment and values to attract cultural fits.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Steps Section for Employers */}
+            <section className="steps-section">
+                <div className="container">
+                    <h2>How to Hire Successfully</h2>
+                    <div className="steps-grid">
+                        <div className="step">
+                            <div className="icon">📝</div>
+                            <div className="content">
+                                <h3>Post Jobs</h3>
+                                <p>Create detailed job postings to attract qualified candidates.</p>
+                            </div>
+                        </div>
+
+                        <div className="step">
+                            <div className="icon">👥</div>
+                            <div className="content">
+                                <h3>Review Applications</h3>
+                                <p>Screen candidates and shortlist the best matches.</p>
+                            </div>
+                        </div>
+
+                        <div className="step">
+                            <div className="icon">🤝</div>
+                            <div className="content">
+                                <h3>Hire & Onboard</h3>
+                                <p>Make offers and welcome new team members.</p>
+                            </div>
                         </div>
                     </div>
                 </div>

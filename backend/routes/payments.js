@@ -295,4 +295,61 @@ router.get('/analytics', async (req, res) => {
     }
 });
 
+// Get all payments for admin management
+router.get('/admin/all', async (req, res) => {
+    try {
+        const { status, limit = 50, offset = 0 } = req.query;
+
+        let query = `
+            SELECT p.*, pl.name as plan_name,
+                   CASE 
+                       WHEN p.user_type = 'employer' THEN e.company_name
+                       ELSE js.first_name || ' ' || js.last_name
+                   END as user_name
+            FROM payments p
+            LEFT JOIN pricing_plans pl ON p.plan_id = pl.id
+            LEFT JOIN employers e ON p.user_id = e.id AND p.user_type = 'employer'
+            LEFT JOIN jobseekers js ON p.user_id = js.id AND p.user_type = 'jobseeker'
+        `;
+
+        let params = [];
+
+        if (status && status !== 'all') {
+            query += ' WHERE p.status = ?';
+            params.push(status);
+        }
+
+        query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
+
+        const payments = await db.all(query, params);
+
+        // Get total count
+        let countQuery = 'SELECT COUNT(*) as total FROM payments p';
+        let countParams = [];
+
+        if (status && status !== 'all') {
+            countQuery += ' WHERE p.status = ?';
+            countParams.push(status);
+        }
+
+        const countResult = await db.get(countQuery, countParams);
+
+        res.json({
+            success: true,
+            payments: payments,
+            total: countResult.total,
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+        });
+
+    } catch (error) {
+        console.error('Error fetching all payments:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch payments'
+        });
+    }
+});
+
 module.exports = router;

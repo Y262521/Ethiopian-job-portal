@@ -1,8 +1,35 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './JobCard.css';
 
 const JobCard = ({ job }) => {
+    const navigate = useNavigate();
+
+    const handleQuickApply = () => {
+        // Check if user is logged in
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+            // Store the job ID to redirect back after login
+            localStorage.setItem('redirectAfterLogin', `/apply/${job.id}`);
+            // Redirect to login page
+            navigate('/login');
+            return;
+        }
+
+        const user = JSON.parse(userData);
+
+        // Check user type - only job seekers can apply
+        if (user.type !== 'jobseeker') {
+            alert(`Only job seekers can apply for jobs. Your account type is: ${user.type}. Please log in with a job seeker account.`);
+            // Redirect to login page for job seeker account
+            localStorage.setItem('redirectAfterLogin', `/apply/${job.id}`);
+            navigate('/login');
+            return;
+        }
+
+        // If logged in as job seeker, go directly to application page
+        navigate(`/apply/${job.id}`);
+    };
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -87,9 +114,14 @@ const JobCard = ({ job }) => {
                             {job.salary}
                         </div>
                     )}
-                    <Link to={`/job/${job.id}`} className="btn btn-primary">
-                        View Details
-                    </Link>
+                    <div className="action-buttons">
+                        <Link to={`/job/${job.id}`} className="btn btn-outline btn-sm">
+                            View Details
+                        </Link>
+                        <button onClick={handleQuickApply} className="btn btn-primary btn-sm">
+                            Apply Now
+                        </button>
+                    </div>
                 </div>
             </div>
 

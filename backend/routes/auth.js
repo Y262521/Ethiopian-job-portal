@@ -89,9 +89,12 @@ router.post('/register', validateRegistration, async (req, res) => {
 // Login endpoint
 router.post('/login', validateLogin, async (req, res) => {
     try {
+        console.log('🔐 Login request received:', req.body.email);
+
         // Check validation errors
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('❌ Login validation errors:', errors.array());
             return res.status(400).json({
                 success: false,
                 error: 'Validation failed',
@@ -103,6 +106,8 @@ router.post('/login', validateLogin, async (req, res) => {
         let user = null;
         let userType = null;
 
+        console.log('🔍 Looking up user:', email);
+
         // Check jobseekers table
         user = await db.get(
             'SELECT id, email, password, first_name, last_name, status FROM jobseekers WHERE email = ?',
@@ -111,6 +116,7 @@ router.post('/login', validateLogin, async (req, res) => {
 
         if (user) {
             userType = 'jobseeker';
+            console.log('✅ Found jobseeker:', user.first_name, user.last_name);
         }
 
         // Check employers table if not found in jobseekers
@@ -122,6 +128,7 @@ router.post('/login', validateLogin, async (req, res) => {
 
             if (user) {
                 userType = 'employer';
+                console.log('✅ Found employer:', user.company_name);
             }
         }
 
@@ -134,24 +141,41 @@ router.post('/login', validateLogin, async (req, res) => {
 
             if (user) {
                 userType = 'admin';
+                console.log('✅ Found admin:', user.username);
             }
         }
 
         // Verify user exists and password is correct
-        if (!user || !await bcrypt.compare(password, user.password)) {
+        if (!user) {
+            console.log('❌ User not found');
             return res.status(401).json({
                 success: false,
                 error: 'Invalid email or password'
             });
         }
 
+        console.log('🔐 Checking password...');
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            console.log('❌ Password mismatch');
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid email or password'
+            });
+        }
+
+        console.log('✅ Password verified');
+
         // Check if account is approved
         if (user.status !== 'approved') {
+            console.log('❌ Account not approved:', user.status);
             return res.status(403).json({
                 success: false,
                 error: 'Account not approved yet'
             });
         }
+
+        console.log('✅ Account approved, generating token...');
 
         // Generate JWT token
         const token = jwt.sign(
@@ -174,6 +198,8 @@ router.post('/login', validateLogin, async (req, res) => {
                 : (userType === 'employer' ? user.company_name : user.username)
         };
 
+        console.log('🎉 Login successful for:', userData.name, '(', userType, ')');
+
         res.json({
             success: true,
             token: token,
@@ -181,7 +207,7 @@ router.post('/login', validateLogin, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         res.status(500).json({
             success: false,
             error: 'Login failed. Please try again.'

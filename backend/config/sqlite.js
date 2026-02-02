@@ -27,12 +27,18 @@ const initializeTables = () => {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       phone TEXT NOT NULL,
+      profile_photo TEXT,
       status TEXT DEFAULT 'approved',
+      suspension_reason TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `, (err) => {
     if (err) console.error('Error creating jobseekers table:', err);
-    else console.log('✅ Jobseekers table ready');
+    else {
+      console.log('✅ Jobseekers table ready');
+      // Add new columns for profile completion
+      addJobseekerProfileColumns();
+    }
   });
 
   // Create employers table
@@ -51,8 +57,10 @@ const initializeTables = () => {
       employees TEXT,
       founded TEXT,
       logo TEXT,
+      profile_photo TEXT,
       is_featured INTEGER DEFAULT 0,
       status TEXT DEFAULT 'approved',
+      suspension_reason TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `, (err) => {
@@ -78,7 +86,9 @@ const initializeTables = () => {
       is_featured INTEGER DEFAULT 0,
       is_urgent INTEGER DEFAULT 0,
       status TEXT DEFAULT 'active',
+      moderation_reason TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (employer_id) REFERENCES employers (id)
     )
   `, (err) => {
@@ -96,6 +106,7 @@ const initializeTables = () => {
       username TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
+      profile_photo TEXT,
       status TEXT DEFAULT 'approved',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -179,14 +190,23 @@ const initializeTables = () => {
     CREATE TABLE IF NOT EXISTS job_applications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       job_id INTEGER NOT NULL,
-      jobseeker_id INTEGER NOT NULL,
-      employer_id INTEGER NOT NULL,
-      status TEXT DEFAULT 'pending', -- 'pending', 'reviewed', 'shortlisted', 'rejected', 'hired'
-      cover_letter TEXT,
-      cv_file_path TEXT,
+      jobseeker_id INTEGER,
+      employer_id INTEGER,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      cover_letter TEXT NOT NULL,
+      experience TEXT NOT NULL,
+      expected_salary TEXT,
+      available_start_date DATE,
+      additional_info TEXT,
+      cv_file_path TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      response_message TEXT,
       payment_id INTEGER,
       application_fee DECIMAL(10,2) DEFAULT 0,
       applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      reviewed_at DATETIME,
       FOREIGN KEY (job_id) REFERENCES jobs (id),
       FOREIGN KEY (jobseeker_id) REFERENCES jobseekers (id),
       FOREIGN KEY (employer_id) REFERENCES employers (id),
@@ -195,6 +215,64 @@ const initializeTables = () => {
   `, (err) => {
     if (err) console.error('Error creating job applications table:', err);
     else console.log('✅ Job applications table ready');
+  });
+
+  // Create saved jobs table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saved_jobs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      jobseeker_id INTEGER NOT NULL,
+      job_id INTEGER NOT NULL,
+      saved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (jobseeker_id) REFERENCES jobseekers (id),
+      FOREIGN KEY (job_id) REFERENCES jobs (id),
+      UNIQUE(jobseeker_id, job_id)
+    )
+  `, (err) => {
+    if (err) console.error('Error creating saved jobs table:', err);
+    else console.log('✅ Saved jobs table ready');
+  });
+
+  // Create job alerts table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS job_alerts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      jobseeker_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      keywords TEXT,
+      location TEXT,
+      category TEXT,
+      job_type TEXT,
+      experience_level TEXT,
+      salary_min INTEGER,
+      salary_max INTEGER,
+      is_active INTEGER DEFAULT 1,
+      email_frequency TEXT DEFAULT 'daily',
+      last_sent DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (jobseeker_id) REFERENCES jobseekers (id)
+    )
+  `, (err) => {
+    if (err) console.error('Error creating job alerts table:', err);
+    else console.log('✅ Job alerts table ready');
+  });
+
+  // Create notifications table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      type TEXT DEFAULT 'info',
+      recipients TEXT NOT NULL,
+      scheduled_for DATETIME,
+      status TEXT DEFAULT 'sent',
+      delivered_count INTEGER DEFAULT 0,
+      sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) console.error('Error creating notifications table:', err);
+    else console.log('✅ Notifications table ready');
   });
 };
 
@@ -401,3 +479,32 @@ const dbAsync = {
 };
 
 module.exports = dbAsync;
+
+// Add new columns to jobseekers table for profile completion
+const addJobseekerProfileColumns = () => {
+  const newColumns = [
+    'bio TEXT',
+    'skills TEXT',
+    'experience TEXT',
+    'education TEXT',
+    'location TEXT',
+    'cv_file_path TEXT',
+    'cv_file_name TEXT',
+    'preferred_job_types TEXT',
+    'preferred_categories TEXT',
+    'preferred_locations TEXT',
+    'salary_expectation TEXT',
+    'work_arrangement TEXT',
+    'experience_level TEXT',
+    'availability TEXT'
+  ];
+
+  newColumns.forEach(column => {
+    const columnName = column.split(' ')[0];
+    db.run(`ALTER TABLE jobseekers ADD COLUMN ${column}`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error(`Error adding column ${columnName}:`, err.message);
+      }
+    });
+  });
+};

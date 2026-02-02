@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import './Auth.css';
 
@@ -10,7 +10,26 @@ const Login = () => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [redirectMessage, setRedirectMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check if user was redirected from job application or registration
+    React.useEffect(() => {
+        const redirectUrl = localStorage.getItem('redirectAfterLogin');
+        if (redirectUrl && (redirectUrl.includes('/job/') || redirectUrl.includes('/apply/'))) {
+            setRedirectMessage('Please log in to apply for this job.');
+        }
+
+        // Check for success message from registration
+        if (location.state?.message) {
+            setSuccessMessage(location.state.message);
+            if (location.state.showRedirectMessage) {
+                setRedirectMessage('After logging in, you will be redirected to continue your job application.');
+            }
+        }
+    }, [location]);
 
     const handleChange = (e) => {
         setFormData({
@@ -30,16 +49,26 @@ const Login = () => {
                 // Store user data in localStorage
                 localStorage.setItem('user', JSON.stringify(response.user));
 
-                // Redirect based on user type
-                if (response.user.type === 'admin') {
-                    // Store admin token for dashboard access
-                    localStorage.setItem('adminToken', response.token);
-                    localStorage.setItem('adminUser', JSON.stringify(response.user));
-                    navigate('/admin/dashboard');
-                } else if (response.user.type === 'employer') {
-                    navigate('/employers');
+                // Check if there's a redirect URL stored
+                const redirectUrl = localStorage.getItem('redirectAfterLogin');
+
+                if (redirectUrl) {
+                    // Clear the redirect URL
+                    localStorage.removeItem('redirectAfterLogin');
+                    // Redirect to the stored URL
+                    navigate(redirectUrl);
                 } else {
-                    navigate('/user/home');
+                    // Default redirect based on user type
+                    if (response.user.type === 'admin') {
+                        // Store admin token for dashboard access
+                        localStorage.setItem('adminToken', response.token);
+                        localStorage.setItem('adminUser', JSON.stringify(response.user));
+                        navigate('/admin/dashboard');
+                    } else if (response.user.type === 'employer') {
+                        navigate('/employer/home');
+                    } else {
+                        navigate('/user/home');
+                    }
                 }
 
                 // Dispatch custom event to update header
@@ -62,6 +91,12 @@ const Login = () => {
                         <div className="auth-header">
                             <h1>Welcome Back</h1>
                             <p>Sign in to your account</p>
+                            {redirectMessage && (
+                                <div className="info-message">
+                                    <i className="fas fa-info-circle"></i>
+                                    {redirectMessage}
+                                </div>
+                            )}
                         </div>
 
                         {error && (

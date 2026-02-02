@@ -42,35 +42,59 @@ body {
   font-size: 16px;
   font-weight: 500;
   transition: all 0.3s ease;
+  text-align: center;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .btn-primary {
-  background-color: #28a745;
-  color: white;
+  background-color: #28a745 !important;
+  color: white !important;
+  border: 2px solid #28a745 !important;
 }
 
 .btn-primary:hover {
-  background-color: #218838;
+  background-color: #218838 !important;
+  color: white !important;
+  text-decoration: none !important;
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: #6c757d;
-  color: white;
+  background-color: #6c757d !important;
+  color: white !important;
+  border: 2px solid #6c757d !important;
 }
 
 .btn-secondary:hover {
-  background-color: #545b62;
+  background-color: #545b62 !important;
+  color: white !important;
+  text-decoration: none !important;
 }
 
 .btn-outline {
-  background-color: transparent;
-  border: 2px solid #28a745;
-  color: #28a745;
+  background-color: transparent !important;
+  border: 2px solid #28a745 !important;
+  color: #28a745 !important;
 }
 
 .btn-outline:hover {
-  background-color: #28a745;
-  color: white;
+  background-color: #28a745 !important;
+  color: white !important;
+  text-decoration: none !important;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: 2px solid #dc3545 !important;
+}
+
+.btn-danger:hover {
+  background-color: #c82333 !important;
+  color: white !important;
+  text-decoration: none !important;
 }
 
 /* Form Elements */
@@ -134,4 +158,45 @@ body {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Global Button Fix - High Priority */
+a.btn,
+button.btn,
+.btn {
+  display: inline-block !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  border: none !important;
+  outline: none !important;
+}
+
+a.btn-primary,
+button.btn-primary,
+.btn-primary {
+  background: #28a745 !important;
+  color: white !important;
+  border: 2px solid #28a745 !important;
+}
+
+a.btn-outline,
+button.btn-outline,
+.btn-outline {
+  background: transparent !important;
+  color: #28a745 !important;
+  border: 2px solid #28a745 !important;
+}
+
+a.btn-outline:hover,
+button.btn-outline:hover,
+.btn-outline:hover {
+  background: #28a745 !important;
+  color: white !important;
+}
+
+a.btn-primary:hover,
+button.btn-primary:hover,
+.btn-primary:hover {
+  background: #218838 !important;
+  color: white !important;
 }

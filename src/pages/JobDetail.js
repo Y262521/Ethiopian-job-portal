@@ -1,123 +1,259 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { fetchJobById, checkJobSaved, saveJob, removeSavedJob } from '../services/api';
+import JobApplication from '../components/JobApplication';
 import './JobDetail.css';
 
 const JobDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [relatedJobs, setRelatedJobs] = useState([]);
+    const [showApplicationModal, setShowApplicationModal] = useState(false);
+    const [user, setUser] = useState(null);
+    const [isJobSaved, setIsJobSaved] = useState(false);
+    const [savingJob, setSavingJob] = useState(false);
 
     useEffect(() => {
-        // Simulate loading job details
-        setTimeout(() => {
+        // Check if user is logged in
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            try {
+                setUser(JSON.parse(userData));
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+            }
+        }
+
+        // Fetch real job details from API
+        fetchJobDetails();
+
+        // Check if job is saved (only for logged-in job seekers)
+        if (userData) {
+            const user = JSON.parse(userData);
+            if (user.type === 'jobseeker') {
+                checkIfJobSaved(user.email);
+            }
+        }
+    }, [id, navigate]);
+
+    const fetchJobDetails = async () => {
+        try {
+            console.log('🔍 Fetching job details for ID:', id);
+            setLoading(true);
+
+            const jobData = await fetchJobById(id);
+            console.log('✅ Job data loaded:', jobData);
+
+            // Transform API data to match component expectations
             const jobDetail = {
-                id: parseInt(id),
-                title: "Senior Software Engineer",
-                company: "Ethiopian Airlines",
-                companyLogo: "/image/company-logo.png",
-                location: "Addis Ababa, Ethiopia",
-                jobType: "Full-time",
-                experienceLevel: "Senior Level",
-                salary: "25,000 - 35,000 ETB",
-                postedDate: "2025-01-20",
-                deadline: "2025-02-20",
-                category: "Information Technology",
-                description: `
-          <h3>About the Role</h3>
-          <p>We are seeking a highly skilled Senior Software Engineer to join our dynamic technology team. The successful candidate will be responsible for designing, developing, and maintaining high-quality software solutions that support our airline operations.</p>
-          
-          <h3>Key Responsibilities</h3>
-          <ul>
-            <li>Design and develop scalable software applications</li>
-            <li>Lead technical discussions and architectural decisions</li>
-            <li>Mentor junior developers and conduct code reviews</li>
-            <li>Collaborate with cross-functional teams to deliver projects</li>
-            <li>Ensure code quality and adherence to best practices</li>
-            <li>Troubleshoot and resolve complex technical issues</li>
-          </ul>
-          
-          <h3>Required Qualifications</h3>
-          <ul>
-            <li>Bachelor's degree in Computer Science or related field</li>
-            <li>5+ years of software development experience</li>
-            <li>Proficiency in Java, Python, or C#</li>
-            <li>Experience with cloud platforms (AWS, Azure)</li>
-            <li>Strong understanding of database systems</li>
-            <li>Excellent problem-solving and communication skills</li>
-          </ul>
-          
-          <h3>Preferred Qualifications</h3>
-          <ul>
-            <li>Master's degree in Computer Science</li>
-            <li>Experience in airline or transportation industry</li>
-            <li>Knowledge of microservices architecture</li>
-            <li>DevOps and CI/CD experience</li>
-          </ul>
-          
-          <h3>What We Offer</h3>
-          <ul>
-            <li>Competitive salary and benefits package</li>
-            <li>Professional development opportunities</li>
-            <li>Flexible working arrangements</li>
-            <li>Health insurance and retirement plans</li>
-            <li>Travel benefits</li>
-          </ul>
-        `,
-                companyDescription: "Ethiopian Airlines is the flag carrier of Ethiopia and one of the largest airlines in Africa. We are committed to connecting Africa with the world through our extensive network and innovative services.",
+                id: jobData.id,
+                title: jobData.title,
+                company: jobData.company_name,
+                companyLogo: jobData.company_logo ? `/image/${jobData.company_logo}` : null,
+                location: jobData.location,
+                jobType: jobData.job_type,
+                experienceLevel: jobData.experience_level,
+                salary: jobData.salary || 'Negotiable',
+                postedDate: jobData.created_at,
+                deadline: jobData.deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                category: jobData.category,
+                description: jobData.description ? `
+                    <h3>Job Description</h3>
+                    <p>${jobData.description}</p>
+                    
+                    <h3>Requirements</h3>
+                    <ul>
+                        <li>Experience Level: ${jobData.experience_level}</li>
+                        <li>Job Type: ${jobData.job_type}</li>
+                        <li>Location: ${jobData.location}</li>
+                    </ul>
+                    
+                    <h3>What We Offer</h3>
+                    <ul>
+                        <li>Competitive salary: ${jobData.salary || 'Negotiable'}</li>
+                        <li>Professional development opportunities</li>
+                        <li>Health insurance and benefits</li>
+                        <li>Flexible working arrangements</li>
+                    </ul>
+                ` : 'No detailed description available.',
+                companyDescription: jobData.company_description || `${jobData.company_name} is a leading company in Ethiopia committed to excellence and innovation.`,
                 requirements: [
-                    "Bachelor's degree in Computer Science",
-                    "5+ years of experience",
-                    "Proficiency in Java/Python/C#",
-                    "Cloud platform experience",
-                    "Strong communication skills"
+                    "Relevant education or equivalent experience",
+                    `${jobData.experience_level} level experience required`,
+                    "Strong communication and interpersonal skills",
+                    "Ability to work effectively in a team environment",
+                    "Proficiency in relevant tools and technologies"
                 ],
                 benefits: [
-                    "Competitive salary",
-                    "Health insurance",
-                    "Professional development",
-                    "Travel benefits",
-                    "Flexible working"
+                    "Competitive salary package",
+                    "Health insurance coverage",
+                    "Professional development opportunities",
+                    "Flexible working arrangements",
+                    "Career advancement prospects"
                 ]
             };
 
             setJob(jobDetail);
 
-            // Set related jobs
-            setRelatedJobs([
-                {
-                    id: 2,
-                    title: "Frontend Developer",
-                    company: "Dashen Bank",
-                    location: "Addis Ababa",
-                    salary: "18,000 - 25,000 ETB",
-                    postedDate: "2025-01-18"
-                },
-                {
-                    id: 3,
-                    title: "DevOps Engineer",
-                    company: "Safaricom Ethiopia",
-                    location: "Addis Ababa",
-                    salary: "22,000 - 30,000 ETB",
-                    postedDate: "2025-01-15"
-                },
-                {
-                    id: 4,
-                    title: "Data Scientist",
-                    company: "Commercial Bank of Ethiopia",
-                    location: "Addis Ababa",
-                    salary: "20,000 - 28,000 ETB",
-                    postedDate: "2025-01-12"
-                }
-            ]);
+            // Fetch real related jobs from the same category
+            try {
+                const relatedJobsResponse = await fetch(`http://localhost:5000/api/jobs?category=${encodeURIComponent(jobData.category)}&limit=3`);
+                if (relatedJobsResponse.ok) {
+                    const relatedData = await relatedJobsResponse.json();
+                    const filteredRelatedJobs = relatedData.jobs
+                        .filter(relatedJob => relatedJob.id !== jobData.id) // Exclude current job
+                        .slice(0, 3) // Limit to 3 jobs
+                        .map(relatedJob => ({
+                            id: relatedJob.id,
+                            title: relatedJob.title,
+                            company: relatedJob.company_name,
+                            location: relatedJob.location,
+                            salary: relatedJob.salary || 'Competitive',
+                            postedDate: relatedJob.created_at
+                        }));
 
+                    setRelatedJobs(filteredRelatedJobs);
+                    console.log('✅ Related jobs loaded:', filteredRelatedJobs);
+                } else {
+                    // Fallback to sample related jobs if API fails
+                    setRelatedJobs([
+                        {
+                            id: jobData.id + 1,
+                            title: "Similar Position Available",
+                            company: "Related Company",
+                            location: jobData.location,
+                            salary: "Competitive Package",
+                            postedDate: new Date().toISOString()
+                        }
+                    ]);
+                }
+            } catch (relatedError) {
+                console.warn('⚠️ Could not fetch related jobs:', relatedError);
+                // Fallback to sample related jobs
+                setRelatedJobs([
+                    {
+                        id: jobData.id + 1,
+                        title: "Similar Position Available",
+                        company: "Related Company",
+                        location: jobData.location,
+                        salary: "Competitive Package",
+                        postedDate: new Date().toISOString()
+                    }
+                ]);
+            }
+
+        } catch (error) {
+            console.error('❌ Error fetching job details:', error);
+            setJob(null); // This will show "Job not found"
+        } finally {
             setLoading(false);
-        }, 1000);
-    }, [id]);
+        }
+    };
 
     const handleApply = () => {
-        // Handle job application
-        alert('Application functionality would be implemented here');
+        // Debug logging
+        console.log('User data:', user);
+        console.log('User type:', user?.type);
+
+        // Check if user is logged in
+        if (!user) {
+            // Store the current job ID to redirect back after login
+            localStorage.setItem('redirectAfterLogin', `/apply/${id}`);
+            // Redirect to login page
+            navigate('/login');
+            return;
+        }
+
+        // Check user type - only job seekers can apply
+        if (user.type !== 'jobseeker') {
+            alert(`Only job seekers can apply for jobs. Your account type is: ${user.type}. Please log in with a job seeker account.`);
+            // Redirect to login page for job seeker account
+            localStorage.setItem('redirectAfterLogin', `/apply/${id}`);
+            navigate('/login');
+            return;
+        }
+
+        // If logged in as job seeker, go to application page
+        navigate(`/apply/${id}`);
+    };
+
+    const handleApplicationSubmit = (applicationData) => {
+        console.log('Application submitted:', applicationData);
+        // Here you would typically send the data to your backend
+        // For now, we'll just log it and show a success message
+        setShowApplicationModal(false);
+    };
+
+    const checkIfJobSaved = async (email) => {
+        try {
+            const response = await checkJobSaved(email, id);
+            if (response.success) {
+                setIsJobSaved(response.isSaved);
+            }
+        } catch (error) {
+            console.error('Error checking if job is saved:', error);
+        }
+    };
+
+    const handleSaveJob = async () => {
+        if (!user) {
+            // Store the current job ID to redirect back after login
+            localStorage.setItem('redirectAfterLogin', `/job/${id}`);
+            // Redirect to login page
+            navigate('/login');
+            return;
+        }
+
+        if (user.type !== 'jobseeker') {
+            alert('Only job seekers can save jobs.');
+            return;
+        }
+
+        setSavingJob(true);
+
+        try {
+            if (isJobSaved) {
+                // Remove from saved jobs
+                const response = await removeSavedJob(user.email, id);
+                if (response.success) {
+                    setIsJobSaved(false);
+                    alert('Job removed from saved list!');
+                }
+            } else {
+                // Save the job
+                const response = await saveJob(user.email, id);
+                if (response.success) {
+                    setIsJobSaved(true);
+                    alert('Job saved successfully!');
+                }
+            }
+        } catch (error) {
+            console.error('Error saving/removing job:', error);
+            if (error.response?.data?.error) {
+                alert(error.response.data.error);
+            } else {
+                alert('Failed to save/remove job. Please try again.');
+            }
+        } finally {
+            setSavingJob(false);
+        }
+    };
+
+    const handleShareJob = () => {
+        // Implement share functionality
+        if (navigator.share) {
+            navigator.share({
+                title: job.title,
+                text: `Check out this job opportunity: ${job.title} at ${job.company}`,
+                url: window.location.href
+            });
+        } else {
+            // Fallback - copy to clipboard
+            navigator.clipboard.writeText(window.location.href);
+            alert('Job link copied to clipboard!');
+        }
     };
 
     const formatDate = (dateString) => {
@@ -200,10 +336,11 @@ const JobDetail = () => {
                                 <button onClick={handleApply} className="btn btn-primary btn-large">
                                     Apply Now
                                 </button>
-                                <button className="btn btn-outline">
-                                    <i className="fas fa-heart"></i> Save Job
+                                <button onClick={handleSaveJob} className={`btn btn-outline ${isJobSaved ? 'saved' : ''}`} disabled={savingJob}>
+                                    <i className={`fas ${isJobSaved ? 'fa-heart' : 'fa-heart'}`}></i>
+                                    {savingJob ? 'Saving...' : (isJobSaved ? 'Saved' : 'Save Job')}
                                 </button>
-                                <button className="btn btn-outline">
+                                <button onClick={handleShareJob} className="btn btn-outline">
                                     <i className="fas fa-share"></i> Share
                                 </button>
                             </div>
@@ -290,6 +427,15 @@ const JobDetail = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Job Application Modal */}
+            {showApplicationModal && (
+                <JobApplication
+                    job={job}
+                    onClose={() => setShowApplicationModal(false)}
+                    onSubmit={handleApplicationSubmit}
+                />
+            )}
         </div>
     );
 };

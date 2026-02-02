@@ -70,16 +70,32 @@ const Header = () => {
         navigate('/');
     };
 
+    // Get the appropriate home URL based on user type
+    const getHomeUrl = () => {
+        if (!user) return '/'; // Public home for guests
+
+        switch (user.type) {
+            case 'jobseeker':
+                return '/user/home';
+            case 'employer':
+                return '/employer/home';
+            case 'admin':
+                return '/admin';
+            default:
+                return '/'; // Fallback to public home
+        }
+    };
+
     return (
         <header className="header">
             <div className="container">
                 <div className="header-content">
-                    <Link to="/" className="logo">
+                    <Link to={getHomeUrl()} className="logo">
                         <h1>Ethiopia Job</h1>
                     </Link>
 
                     <nav className={`nav ${isMenuOpen ? 'nav-open' : ''}`}>
-                        <Link to="/" className="nav-link">Home</Link>
+                        <Link to={getHomeUrl()} className="nav-link">Home</Link>
                         <Link to="/jobs" className="nav-link">Find Jobs</Link>
                         <Link to="/companies" className="nav-link">Companies</Link>
                         <Link to="/blog" className="nav-link">Blog</Link>

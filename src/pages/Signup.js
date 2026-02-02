@@ -73,9 +73,22 @@ const Signup = () => {
             const response = await registerUser(submitData);
             console.log('Registration response:', response);
             if (response.success) {
-                navigate('/login', {
-                    state: { message: 'Registration successful! Please sign in.' }
-                });
+                // Check if there's a redirect URL stored
+                const redirectUrl = localStorage.getItem('redirectAfterLogin');
+
+                if (redirectUrl) {
+                    // Keep the redirect URL for after login
+                    navigate('/login', {
+                        state: {
+                            message: 'Registration successful! Please sign in to continue.',
+                            showRedirectMessage: true
+                        }
+                    });
+                } else {
+                    navigate('/login', {
+                        state: { message: 'Registration successful! Please sign in.' }
+                    });
+                }
             } else {
                 setError(response.message || 'Registration failed');
             }

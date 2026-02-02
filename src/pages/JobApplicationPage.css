@@ -1,0 +1,147 @@
+.job-application-page {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+}
+
+.job-application-page .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.application-header {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.application-header .back-link {
+    display: inline-flex;
+    align-items: center;
+    color: #28a745;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    transition: color 0.3s ease;
+}
+
+.application-header .back-link:hover {
+    color: #218838;
+}
+
+.application-header .back-link i {
+    margin-right: 0.5rem;
+}
+
+.application-header h1 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.application-header .company-name {
+    color: #28a745;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.application-header .job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.application-header .job-meta span {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.application-header .job-meta i {
+    margin-right: 0.5rem;
+    color: #28a745;
+}
+
+.application-content {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Override modal styles when used as a page */
+.application-content .job-application-modal {
+    position: static;
+    z-index: auto;
+}
+
+.application-content .modal-overlay {
+    display: none;
+}
+
+.application-content .modal-content {
+    position: static;
+    transform: none;
+    max-width: none;
+    width: 100%;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.application-content .modal-header {
+    display: none;
+    /* Hide modal header since we have page header */
+}
+
+.application-content .close-btn {
+    display: none;
+    /* Hide close button */
+}
+
+.loading,
+.not-found {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.loading {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.not-found h2 {
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .job-application-page {
+        padding: 1rem 0;
+    }
+
+    .application-header {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .application-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .application-header .job-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}

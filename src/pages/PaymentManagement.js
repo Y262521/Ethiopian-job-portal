@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getAllPayments, confirmPayment } from '../services/api';
 import './PaymentManagement.css';
 
@@ -38,7 +38,7 @@ const PaymentManagement = () => {
         }
     };
 
-    const fetchPayments = async () => {
+    const fetchPayments = useCallback(async () => {
         try {
             setLoading(true);
             console.log('🔍 Fetching payments for status:', activeTab);
@@ -48,20 +48,17 @@ const PaymentManagement = () => {
             if (response.success) {
                 console.log('✅ Payments loaded:', response.payments);
                 setPayments(response.payments || []);
-                setTotalPayments(response.total || 0);
             } else {
                 console.error('❌ Failed to fetch payments:', response.error);
                 setPayments([]);
-                setTotalPayments(0);
             }
         } catch (error) {
             console.error('❌ Error fetching payments:', error);
             setPayments([]);
-            setTotalPayments(0);
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
 
     const handlePaymentAction = async (paymentId, action) => {
         try {

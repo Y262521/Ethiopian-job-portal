@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import JobCategories from '../components/JobCategories';
@@ -88,7 +88,7 @@ const UserHome = () => {
         }
     };
 
-    const fetchRecentJobs = async () => {
+    const fetchRecentJobs = useCallback(async () => {
         try {
             const response = await fetchJobs({ limit: 6 });
             const jobs = response.jobs || [];
@@ -113,7 +113,7 @@ const UserHome = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     const getGreeting = () => {
         const hour = new Date().getHours();

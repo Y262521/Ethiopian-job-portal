@@ -130,22 +130,20 @@ app.use('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
-// For Vercel serverless deployment
-if (process.env.NODE_ENV === 'production' && process.env.VERCEL) {
-    module.exports = app;
-} else {
-    // For local development
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`🚀 Ethiopia Job API server running on port ${PORT}`);
-        console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL}`);
-        console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-        console.log(`🛡️  Process error handlers installed`);
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Ethiopia Job Portal API server running on port ${PORT}`);
+    console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+    console.log(`🛡️  Process error handlers installed`);
+    console.log(`🎯 Server ready for connections`);
 
-        // Log server health every 30 seconds
+    // Log server health every 30 seconds in development
+    if (process.env.NODE_ENV !== 'production') {
         setInterval(() => {
             const memUsage = process.memoryUsage();
             console.log(`💚 Server healthy - Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
         }, 30000);
-    });
-}
+    }
+});
